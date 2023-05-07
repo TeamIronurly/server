@@ -16,6 +16,9 @@ class Lobby
             return false;
         players.Add(player);
         sendToAll(player, new Packet(Packet.Type.JOINED, player));
+        for(int i = 0;i<players.Count;i++){
+            player.send(new Packet(Packet.Type.JOINED, players[i]));
+        }
         Log.info($"player {player.id} joined lobby {id}");
         return true;
     }
