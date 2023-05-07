@@ -98,7 +98,7 @@ class Player
                 receive(new Packet(Packet.Protocol.TCP, bytes));
             }
         }
-        catch (SocketException)
+        catch (Exception)
         {
             tcpClient.Close();
         }
@@ -118,7 +118,7 @@ class Player
                 receive(new Packet(Packet.Protocol.UDP, bytes));
             }
         }
-        catch (SocketException)
+        catch (Exception)
         {
             udp.Close();
         }
