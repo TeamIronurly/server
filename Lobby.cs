@@ -15,9 +15,9 @@ class Lobby
         if (players.Count >= maxPlayers)
             return false;
         players.Add(player);
-        sendToAll(player, new Packet(Packet.Type.JOINED, player));
+        sendToAll(player, new Packet(Packet.Type.JOINED, player.id));
         for(int i = 0;i<players.Count;i++){
-            player.send(new Packet(Packet.Type.JOINED, players[i]));
+            player.send(new Packet(Packet.Type.JOINED, players[i].id));
         }
         Log.info($"player {player.id} joined lobby {id}");
         return true;
@@ -26,7 +26,7 @@ class Lobby
     public void leave(Player player)
     {
         players.Remove(player);
-        sendToAll(player, new Packet(Packet.Type.LEFT, player));
+        sendToAll(player, new Packet(Packet.Type.LEFT, player.id));
         if(players.Count==0){
             Program.lobbies.Remove(id);
             Log.info($"lobby {id} deleted");

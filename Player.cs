@@ -32,43 +32,40 @@ class Player
 
     void receive(Packet packet)
     {
-        if (packet.type == Packet.Type.PING)
+        switch (packet.type)
         {
-            send(packet);
-        }
-        else if (packet.type == Packet.Type.GET_ID)
-        {
-            send(new Packet(Packet.Type.GET_ID, this));
-        }
-        else if (packet.type == Packet.Type.CREATE_LOBBY)
-        {
-            lobby = Program.createLobby();
-            lobby.join(this);
-            send(new Packet(Packet.Type.CREATED_LOBBY, this, lobby.id));
-            send(new Packet(Packet.Type.JOINED, this));
-        }
-        else if (packet.type == Packet.Type.JOIN)
-        {
-            int lobby_id = BitConverter.ToInt32(packet.bytes, 8);
-            if (Program.lobbies.ContainsKey(lobby_id) && Program.lobbies[lobby_id].join(this))
-            {
-                send(new Packet(Packet.Type.JOINED, this));
-                lobby = Program.lobbies[lobby_id];
-            }
-            else
-            {
-                send(new Packet(Packet.Type.JOIN_FAILED, this));
-            }
-
-        }
-        else if (packet.type == Packet.Type.LEFT)
-        {
-            lobby?.leave(this);
-            lobby = null;
-        }
-        else
-        {
-            lobby?.sendToAll(this, packet);
+            case Packet.Type.PING:
+                send(packet);
+                break;
+            case Packet.Type.GET_ID:
+                send(new Packet(Packet.Type.GET_ID, id));
+                Log.info($"player {id} logged in");
+                break;
+            case Packet.Type.CREATE_LOBBY:
+                lobby = Program.createLobby();
+                lobby.join(this);
+                send(new Packet(Packet.Type.CREATED_LOBBY, id, lobby.id));
+                send(new Packet(Packet.Type.JOINED, id));
+                break;
+            case Packet.Type.JOIN:
+                int lobby_id = BitConverter.ToInt32(packet.bytes, 12);
+                if (Program.lobbies.ContainsKey(lobby_id) && Program.lobbies[lobby_id].join(this))
+                {
+                    send(new Packet(Packet.Type.JOINED, id));
+                    lobby = Program.lobbies[lobby_id];
+                }
+                else
+                {
+                    send(new Packet(Packet.Type.JOIN_FAILED, id));
+                }
+                break;
+            case Packet.Type.LEFT:
+                lobby?.leave(this);
+                lobby = null;
+                break;
+            default:
+                lobby?.sendToAll(this, packet);
+                break;
         }
     }
 
@@ -84,23 +81,31 @@ class Player
         {
             while (tcpClient.Connected)
             {
-                byte[] typeBuffer = new byte[4];
-                tcp.Read(typeBuffer, 0, 4);
-                Packet.Type type = (Packet.Type)BitConverter.ToInt32(typeBuffer);
+                byte[] lengthAndTypeBuffer = new byte[8];
+                tcp.Read(lengthAndTypeBuffer, 0, 8);
+                int length = BitConverter.ToInt32(lengthAndTypeBuffer, 0);
+                Packet.Type type = (Packet.Type)BitConverter.ToInt32(lengthAndTypeBuffer, 4);
+
                 byte[] bytes = new byte[Packet.Lengths[type]];
-                typeBuffer.CopyTo(bytes, 0);
-                int read = tcp.Read(bytes, 4, Packet.Lengths[type] - 4);
-                if (read != Packet.Lengths[type] - 4)
+                lengthAndTypeBuffer.CopyTo(bytes, 0);
+                int read = tcp.Read(bytes, 8, Packet.Lengths[type] - 8);
+                if (read == 0)
                 {
                     tcpClient.Close();
                     break;
                 }
+
                 receive(new Packet(Packet.Protocol.TCP, bytes));
             }
         }
-        catch (Exception)
+        catch (SocketException)
         {
             tcpClient.Close();
+        }
+        catch (Exception e)
+        {
+            tcpClient.Close();
+            Console.Error.WriteLine(e);
         }
         tcpClient.Close();
         udp.Close();
@@ -118,9 +123,14 @@ class Player
                 receive(new Packet(Packet.Protocol.UDP, bytes));
             }
         }
-        catch (Exception)
+        catch (SocketException)
         {
             udp.Close();
+        }
+        catch (Exception e)
+        {
+            tcpClient.Close();
+            Console.Error.WriteLine(e);
         }
     }
 }
