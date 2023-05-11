@@ -15,7 +15,7 @@ class Player
         this.tcp = tcpClient.GetStream();
         this.udp = udpClinet;
         startReceiveLoops();
-        Log.info($"player {id} connected");
+        Log.info($"player {id} connected from {tcpClient.Client.RemoteEndPoint}");
     }
 
     public void send(Packet packet)
