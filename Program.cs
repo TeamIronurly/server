@@ -4,7 +4,7 @@ using System.Net.Sockets;
 class Program
 {
 
-    static int port = 42069;
+    static int port = 1337;
 
     public static List<Player> clients = new List<Player>();
     public static Dictionary<int,Lobby> lobbies = new Dictionary<int,Lobby>();
