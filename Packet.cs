@@ -2,19 +2,6 @@ class Packet
 {
     public enum Type { PING, GET_ID, WON, LOST, JOIN, JOINED, JOIN_FAILED, CREATE_LOBBY, CREATED_LOBBY, LEFT, MOVED };
     public enum Protocol { TCP, UDP };
-    public static Dictionary<Type, int> Lengths = new Dictionary<Type, int>() {
-        { Type.PING, 12 },               // length | type | player_id
-        { Type.GET_ID, 12 },             // length | type | player_id
-        { Type.WON, 12 },                // length | type | player_id
-        { Type.LOST, 12 },               // length | type | player_id
-        { Type.JOIN, 16 },               // length | type | player_id | lobby_id
-        { Type.JOINED, 12 },             // length | type | player_id
-        { Type.JOIN_FAILED, 12 },        // length | type | player_id
-        { Type.CREATE_LOBBY, 12 },       // length | type | player_id
-        { Type.CREATED_LOBBY, 16 },      // length | type | player_id | lobby_id
-        { Type.LEFT, 12 },               // length | type | player_id
-        { Type.MOVED, 28 },              // length | type | player_id | x | y | vx | vy
-    };
     public Type type;
     public int length;
     public Protocol protocol;

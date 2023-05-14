@@ -10,12 +10,12 @@ class Player
     NetworkStream tcp;
     public Player(TcpClient tcpClient, UdpClient udpClinet, int id)
     {
+        Log.info($"player {id} connected from {tcpClient.Client.RemoteEndPoint}");
         this.id = id;
         this.tcpClient = tcpClient;
         this.tcp = tcpClient.GetStream();
         this.udp = udpClinet;
         startReceiveLoops();
-        Log.info($"player {id} connected from {tcpClient.Client.RemoteEndPoint}");
     }
 
     public void send(Packet packet)
@@ -86,9 +86,9 @@ class Player
                 int length = BitConverter.ToInt32(lengthAndTypeBuffer, 0);
                 Packet.Type type = (Packet.Type)BitConverter.ToInt32(lengthAndTypeBuffer, 4);
 
-                byte[] bytes = new byte[Packet.Lengths[type]];
+                byte[] bytes = new byte[length];
                 lengthAndTypeBuffer.CopyTo(bytes, 0);
-                int read = tcp.Read(bytes, 8, Packet.Lengths[type] - 8);
+                int read = tcp.Read(bytes, 8, length - 8);
                 if (read == 0)
                 {
                     tcpClient.Close();
